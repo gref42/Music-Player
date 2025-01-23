@@ -6,7 +6,7 @@ namespace Music_Player
     {
         private List<string> songPaths;
 
-        private IWavePlayer musicPlayer;
+        private IWavePlayer waveOut;
         private AudioFileReader audioFile;
         public Form1()
         {
@@ -45,12 +45,12 @@ namespace Music_Player
         {
             string filePath = $"{songPaths[songPaths.Count - 1]}";
 
-            musicPlayer = new WaveOutEvent();
+            waveOut = new WaveOutEvent();
             audioFile = new AudioFileReader(filePath);
 
-            musicPlayer.Init(audioFile);
+            waveOut.Init(audioFile);
 
-            musicPlayer.Play();
+            waveOut.Play();
         }
     }
 }

@@ -31,20 +31,23 @@
             volumeSlider = new NAudio.Gui.VolumeSlider();
             addSong_button = new Button();
             play_button = new Button();
+            listView = new ListView();
             SuspendLayout();
             // 
             // volumeSlider
             // 
-            volumeSlider.Location = new Point(415, 289);
+            volumeSlider.Location = new Point(275, 335);
+            volumeSlider.Margin = new Padding(3, 4, 3, 4);
             volumeSlider.Name = "volumeSlider";
-            volumeSlider.Size = new Size(96, 16);
+            volumeSlider.Size = new Size(110, 21);
             volumeSlider.TabIndex = 0;
             // 
             // addSong_button
             // 
-            addSong_button.Location = new Point(157, 225);
+            addSong_button.Location = new Point(275, 118);
+            addSong_button.Margin = new Padding(3, 4, 3, 4);
             addSong_button.Name = "addSong_button";
-            addSong_button.Size = new Size(75, 23);
+            addSong_button.Size = new Size(86, 31);
             addSong_button.TabIndex = 1;
             addSong_button.Text = "Add Song";
             addSong_button.UseVisualStyleBackColor = true;
@@ -52,24 +55,36 @@
             // 
             // play_button
             // 
-            play_button.Location = new Point(332, 157);
+            play_button.Location = new Point(402, 118);
+            play_button.Margin = new Padding(3, 4, 3, 4);
             play_button.Name = "play_button";
-            play_button.Size = new Size(75, 23);
+            play_button.Size = new Size(86, 31);
             play_button.TabIndex = 2;
             play_button.Text = "Play";
             play_button.UseVisualStyleBackColor = true;
             play_button.Click += play_button_Click;
             // 
+            // listView
+            // 
+            listView.Location = new Point(35, 39);
+            listView.Name = "listView";
+            listView.Size = new Size(151, 371);
+            listView.TabIndex = 3;
+            listView.UseCompatibleStateImageBehavior = false;
+            // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(682, 553);
+            Controls.Add(listView);
             Controls.Add(play_button);
             Controls.Add(addSong_button);
             Controls.Add(volumeSlider);
+            Margin = new Padding(3, 4, 3, 4);
+            MinimumSize = new Size(500, 400);
             Name = "Form1";
-            Text = "Form1";
+            Text = "Music Player";
             Load += Form1_Load;
             ResumeLayout(false);
         }
@@ -79,5 +94,6 @@
         private NAudio.Gui.VolumeSlider volumeSlider;
         private Button addSong_button;
         private Button play_button;
+        private ListView listView;
     }
 }
