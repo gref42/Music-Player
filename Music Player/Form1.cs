@@ -1,22 +1,31 @@
+using System.Diagnostics.CodeAnalysis;
+using System.DirectoryServices.ActiveDirectory;
 using NAudio.Wave;
 
 namespace Music_Player
 {
-    public partial class Form1 : Form
+    public partial class MusicPlayer : Form
     {
         private List<string> songPaths;
 
-        private IWavePlayer waveOut;
-        private AudioFileReader audioFile;
-        public Form1()
+        private WaveOutEvent waveOut;
+        private AudioFileReader? audioFileReader;
+
+        private bool hasStarted = false;
+        private bool isPlaying = false;
+
+        private LinkedList<string> songHistory;
+
+        public MusicPlayer()
         {
             InitializeComponent();
-
+            songPaths = new List<string>();
+            waveOut = new WaveOutEvent();
+            songHistory = new LinkedList<string>();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            songPaths = new List<string>();
 
         }
 
@@ -32,7 +41,7 @@ namespace Music_Player
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show($"You have selected: {openFileDialog.FileName}", "Song selected");
+                //MessageBox.Show($"You have selected: {openFileDialog.FileName}", "Song selected");
                 songPaths.Add(openFileDialog.FileName);
             }
             else
@@ -41,16 +50,69 @@ namespace Music_Player
             }
         }
 
-        private void play_button_Click(object sender, EventArgs e)
+        private void btnPlayPause_Click(object sender, EventArgs e)
         {
-            string filePath = $"{songPaths[songPaths.Count - 1]}";
+            if (!hasStarted)
+            {
+                hasStarted = true;
 
-            waveOut = new WaveOutEvent();
-            audioFile = new AudioFileReader(filePath);
+                string filePath = $"{songPaths[songPaths.Count - 1]}";
 
-            waveOut.Init(audioFile);
+                waveOut = new WaveOutEvent();
+                audioFileReader = new AudioFileReader(filePath);
 
-            waveOut.Play();
+                string[] meta = Path.GetFileNameWithoutExtension(filePath).Split('-');
+
+                lblCurrentSong.Text = meta.Length > 1 ? meta[1].Trim() : meta[0].Trim();
+                lblCurrentAuthor.Text = meta.Length > 1 ? meta[0].Trim() : "Unknown Author";
+
+                pnlCurrentSongDetails.Visible = true;
+
+                waveOut.Init(audioFileReader);
+            }
+
+
+            if (isPlaying) // When song is playing
+            {
+                isPlaying = false;
+                btnPlayPause.Text = "Play";
+
+                waveOut.Pause();
+            }
+            else // When song is paused
+            {
+                isPlaying = true;
+                btnPlayPause.Text = "Pause";
+
+                waveOut.Play();
+            }
+
+        }
+
+        private void volumeSlider_ValueChanged(object sender, EventArgs e)
+        {
+            if (waveOut != null && waveOut.PlaybackState == PlaybackState.Playing)
+            {
+                waveOut.Volume = volumeSlider.Volume;
+            }
+        }
+
+        private void btnNextSong_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnPreviousSong_Click(object sender, EventArgs e)
+        {
+            if (audioFileReader != null && hasStarted && audioFileReader.CurrentTime.TotalSeconds > 5)
+            {
+                audioFileReader.Position = 0;
+            }
+            else
+            {
+                // TODO: GO TO PREVIOUS SONG (DOUBLE ENDED QUEUE?)
+                songHistory.RemoveLast();
+            }
         }
     }
 }
