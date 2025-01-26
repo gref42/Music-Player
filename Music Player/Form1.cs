@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using NAudio.Wave;
 
 namespace Music_Player
@@ -6,7 +7,7 @@ namespace Music_Player
     {
         private List<Song> songList;
 
-        private WaveOutEvent waveOut;
+        private WaveOutEvent? waveOutEvent;
         private AudioFileReader? audioFileReader;
 
         private bool hasStarted = false;
@@ -19,7 +20,7 @@ namespace Music_Player
         {
             InitializeComponent();
             songList = new List<Song>();
-            waveOut = new WaveOutEvent();
+            waveOutEvent = new WaveOutEvent();
             songHistory = new LinkedList<string>();
         }
 
@@ -72,8 +73,17 @@ namespace Music_Player
             {
                 hasStarted = true;
 
-                waveOut = new WaveOutEvent();
-                audioFileReader = new AudioFileReader(songList[selectedSong].FilePath);
+                waveOutEvent = new WaveOutEvent();
+
+                try
+                {
+                    audioFileReader = new AudioFileReader(songList[selectedSong].FilePath);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                    throw;
+                }
 
 
                 lblCurrentSong.Text = songList[selectedSong].Title;
@@ -81,8 +91,8 @@ namespace Music_Player
 
                 pnlCurrentSongDetails.Visible = true;
 
-                waveOut.Init(audioFileReader);
-                waveOut.Volume = volumeSlider.Volume;
+                waveOutEvent.Init(audioFileReader);
+                waveOutEvent.Volume = volumeSlider.Volume;
             }
 
 
@@ -91,26 +101,26 @@ namespace Music_Player
                 isPlaying = false;
                 btnPlayPause.Text = "Play";
 
-                waveOut.Pause();
+                waveOutEvent?.Pause();
             }
             else // When song is paused
             {
                 isPlaying = true;
                 btnPlayPause.Text = "Pause";
 
-                waveOut.Play();
+                waveOutEvent?.Play();
             }
 
         }
 
         private void volumeSlider_ValueChanged(object sender, EventArgs e)
         {
-            waveOut.Volume = volumeSlider.Volume;
+            waveOutEvent.Volume = volumeSlider.Volume;
         }
 
         private void btnNextSong_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         private void btnPreviousSong_Click(object sender, EventArgs e)
@@ -144,19 +154,112 @@ namespace Music_Player
                         file.EndsWith(".mp3") || file.EndsWith(".wav") || file.EndsWith(".flac") ||
                         file.EndsWith(".aac"));
 
-                //MessageBox.Show($"You have selected: {openFileDialog.FileName}", "Song selected");
                 foreach (var path in audioFilesPath)
                 {
                     var newSong = new Song(path);
                     songList.Add(newSong);
 
                     var item = new ListViewItem([newSong.Title, newSong.Artist, newSong.Length.ToString(@"mm\:ss")]);
+                    item.Tag = newSong.FilePath;
                     listViewSongs.Items.Add(item);
                 }
             }
             else
             {
                 MessageBox.Show("You haven't selected a folder", "No selection");
+            }
+        }
+
+        private void listViewSongs_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (listViewSongs.SelectedItems.Count > 0)
+            {
+                string path = listViewSongs.SelectedItems[0].Tag as string;
+                if (!string.IsNullOrEmpty(path))
+                {
+                    StopCurrentSong();
+
+                    PlaySong(path);
+                }
+            }
+        }
+
+        private void StopCurrentSong()
+        {
+            waveOutEvent?.Stop();
+            waveOutEvent?.Dispose();
+            waveOutEvent = null;
+        }
+
+        private void PlaySong(Song song)
+        {
+            audioFileReader = new AudioFileReader(song.FilePath);
+            waveOutEvent = new WaveOutEvent();
+            waveOutEvent.Init(audioFileReader);
+            waveOutEvent.Play();
+        }
+
+        private void PlaySong(string path)
+        {
+            audioFileReader = new AudioFileReader(path);
+            waveOutEvent = new WaveOutEvent();
+
+            seekBar.Maximum = (int)audioFileReader.TotalTime.TotalSeconds;
+            lblTotalTime.Text = audioFileReader.TotalTime.ToString(@"m\:ss");
+
+            waveOutEvent.Init(audioFileReader);
+            waveOutEvent.Play();
+
+            lblTimer.Text = "0:00";
+            seekBar.Value = 0;
+
+            UpdateTimerState();
+        }
+
+        private void seekBar_Scroll(object sender, EventArgs e)
+        {
+            if (waveOutEvent.PlaybackState != PlaybackState.Paused)
+            {
+                UpdateTimerState();
+                waveOutEvent.Pause();
+            }
+
+            int minutes = seekBar.Value / 60;
+            int seconds = seekBar.Value % 60;
+
+            lblTimer.Text = $"{minutes:D2}:{seconds:D2}";
+        }
+
+        private void seekBar_MouseUp(object sender, MouseEventArgs e)
+        {
+            double pos = seekBar.Value;
+            audioFileReader.CurrentTime = TimeSpan.FromSeconds(pos);
+
+            UpdateTimerState();
+            waveOutEvent.Play();
+        }
+
+        private void songTimer_Tick(object sender, EventArgs e)
+        {
+            lblTimer.Text = audioFileReader.CurrentTime.ToString(@"m\:ss");
+            seekBar.Value = (int)audioFileReader.CurrentTime.TotalSeconds;
+        }
+
+        private void UpdateTimerState()
+        {
+            if (waveOutEvent.PlaybackState == PlaybackState.Playing)
+            {
+                if (!songTimer.Enabled)
+                {
+                    songTimer.Start();
+                }
+            }
+            else
+            {
+                if (songTimer.Enabled)
+                {
+                    songTimer.Stop();
+                }
             }
         }
     }
