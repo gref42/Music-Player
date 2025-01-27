@@ -91,6 +91,7 @@
             listViewSongs.Location = new Point(0, 2);
             listViewSongs.Margin = new Padding(3, 2, 3, 2);
             listViewSongs.Name = "listViewSongs";
+            listViewSongs.ShowItemToolTips = true;
             listViewSongs.Size = new Size(267, 269);
             listViewSongs.TabIndex = 3;
             listViewSongs.UseCompatibleStateImageBehavior = false;

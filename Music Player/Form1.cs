@@ -10,9 +10,6 @@ namespace Music_Player
         private WaveOutEvent? waveOutEvent;
         private AudioFileReader? audioFileReader;
 
-        private bool hasStarted = false;
-        private bool isPlaying = false;
-        private int currentlyPlayingIndex = -1;
 
         private LinkedList<string> songHistory;
 
@@ -36,17 +33,29 @@ namespace Music_Player
                 Title = "Select a song",
                 Filter = "Audio files|*.mp3;*.wav;*.flac;*.aac",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
-                Multiselect = false
+                Multiselect = true
             };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                //MessageBox.Show($"You have selected: {openFileDialog.FileName}", "Song selected");
-                var newSong = new Song(openFileDialog.FileName);
-                songList.Add(newSong);
+                string[] filePaths = openFileDialog.FileNames;
 
-                var item = new ListViewItem([newSong.Title, newSong.Artist, newSong.Length.ToString(@"mm\:ss")]);
-                listViewSongs.Items.Add(item);
+                foreach (var path in filePaths)
+                {
+                    var newSong = new Song(path);
+
+                    if (newSong.IsValid)
+                    {
+                        songList.Add(newSong);
+
+                        var item = new ListViewItem([newSong.Title, newSong.Artist, newSong.Length.ToString(@"mm\:ss")])
+                        {
+                            Tag = newSong
+                        };
+
+                        listViewSongs.Items.Add(item);
+                    }
+                }
             }
             else
             {
@@ -56,59 +65,35 @@ namespace Music_Player
 
         private void btnPlayPause_Click(object sender, EventArgs e)
         {
-            int selectedSong;
-            try
+            if (btnPlayPause.Text == "Play")
             {
-                selectedSong = listViewSongs.SelectedItems[0].Index;
-            }
-            catch (Exception exception)
-            {
-                if (hasStarted)
-                    selectedSong = currentlyPlayingIndex;
+                if(waveOutEvent.PlaybackState == PlaybackState.Paused)
+                {
+                    waveOutEvent.Play();
+
+                }
                 else
-                    selectedSong = 0;
-            }
-
-            if (!hasStarted || currentlyPlayingIndex != selectedSong)
-            {
-                hasStarted = true;
-
-                waveOutEvent = new WaveOutEvent();
-
-                try
                 {
-                    audioFileReader = new AudioFileReader(songList[selectedSong].FilePath);
+                    try
+                    {
+                        if (listViewSongs.SelectedItems[0].Tag is Song song)
+                        {
+                            PlaySong(song);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return;
+                    }
                 }
-                catch (Exception exception)
-                {
-                    Console.WriteLine(exception);
-                    throw;
-                }
-
-
-                lblCurrentSong.Text = songList[selectedSong].Title;
-                lblCurrentAuthor.Text = songList[selectedSong].Artist;
-
-                pnlCurrentSongDetails.Visible = true;
-
-                waveOutEvent.Init(audioFileReader);
-                waveOutEvent.Volume = volumeSlider.Volume;
+                UpdateTimerState();
+                UpdatePlayPauseBtn();
             }
-
-
-            if (isPlaying) // When song is playing
+            else
             {
-                isPlaying = false;
-                btnPlayPause.Text = "Play";
-
-                waveOutEvent?.Pause();
-            }
-            else // When song is paused
-            {
-                isPlaying = true;
-                btnPlayPause.Text = "Pause";
-
-                waveOutEvent?.Play();
+                waveOutEvent.Pause();
+                UpdateTimerState();
+                UpdatePlayPauseBtn();
             }
 
         }
@@ -125,9 +110,11 @@ namespace Music_Player
 
         private void btnPreviousSong_Click(object sender, EventArgs e)
         {
-            if (audioFileReader != null && hasStarted && audioFileReader.CurrentTime.TotalSeconds > 5)
+            if (audioFileReader != null && audioFileReader.CurrentTime.TotalSeconds > 5)
             {
                 audioFileReader.Position = 0;
+                lblTimer.Text = "0:00";
+                UpdateTimerState();
             }
             else
             {
@@ -157,16 +144,22 @@ namespace Music_Player
                 foreach (var path in audioFilesPath)
                 {
                     var newSong = new Song(path);
-                    songList.Add(newSong);
 
-                    var item = new ListViewItem([newSong.Title, newSong.Artist, newSong.Length.ToString(@"mm\:ss")]);
-                    item.Tag = newSong.FilePath;
-                    listViewSongs.Items.Add(item);
+                    if (newSong.IsValid)
+                    {
+                        songList.Add(newSong);
+
+                        var item = new ListViewItem([newSong.Title, newSong.Artist, newSong.Length.ToString(@"mm\:ss")])
+                        {
+                            Tag = newSong
+                        };
+                        listViewSongs.Items.Add(item);
+                    }
                 }
             }
             else
             {
-                MessageBox.Show("You haven't selected a folder", "No selection");
+                //MessageBox.Show("You haven't selected a folder", "No selection");
             }
         }
 
@@ -174,13 +167,12 @@ namespace Music_Player
         {
             if (listViewSongs.SelectedItems.Count > 0)
             {
-                string path = listViewSongs.SelectedItems[0].Tag as string;
-                if (!string.IsNullOrEmpty(path))
+                if (listViewSongs.SelectedItems[0].Tag is Song song)
                 {
                     StopCurrentSong();
-
-                    PlaySong(path);
+                    PlaySong(song);
                 }
+
             }
         }
 
@@ -195,8 +187,18 @@ namespace Music_Player
         {
             audioFileReader = new AudioFileReader(song.FilePath);
             waveOutEvent = new WaveOutEvent();
+
+            seekBar.Maximum = (int)audioFileReader.TotalTime.TotalSeconds;
+            lblTotalTime.Text = audioFileReader.TotalTime.ToString(@"m\:ss");
+
             waveOutEvent.Init(audioFileReader);
             waveOutEvent.Play();
+
+            lblTimer.Text = "0:00";
+            seekBar.Value = 0;
+
+            UpdateTimerState();
+            UpdatePlayPauseBtn();
         }
 
         private void PlaySong(string path)
@@ -262,18 +264,40 @@ namespace Music_Player
                 }
             }
         }
+
+        private void UpdatePlayPauseBtn()
+        {
+            if (waveOutEvent.PlaybackState == PlaybackState.Paused ||
+                waveOutEvent.PlaybackState == PlaybackState.Stopped)
+            {
+                btnPlayPause.Text = "Play";
+            }
+            else
+            {
+                btnPlayPause.Text = "Pause";
+            }
+            
+        }
     }
 
     public class Song
     {
-        public string Title;
-        public string Artist;
-        public TimeSpan Length;
-        public string FilePath;
+        public string Title { get; }
+        public string Artist { get; }
+        public TimeSpan Length { get; }
+        public string FilePath { get; }
+        public bool IsValid { get; }
 
         public Song(string filePath)
         {
             FilePath = filePath;
+            IsValid = true;
+
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+            {
+                IsValid = false;
+                return;
+            }
 
             try
             {
@@ -285,8 +309,9 @@ namespace Music_Player
             catch (Exception e)
             {
                 MessageBox.Show($"{filePath} could not be added.", "Error loading file.");
+                IsValid = false;
+                return;
             }
-            
 
             string[] meta = Path.GetFileNameWithoutExtension(filePath).Split('-');
 
