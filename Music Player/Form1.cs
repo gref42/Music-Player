@@ -11,10 +11,12 @@ namespace Music_Player
         private AudioFileReader? audioFileReader;
 
 
-        private LinkedList<Song> songHistory;
-        private Song nextSong;
+        private LinkedList<Song>? songHistory;
+        private Song? nextSong;
+        private Song? currentSong;
 
-        private bool manualSongStop;
+        private bool manualStop;
+        private bool previous;
 
         public MusicPlayer()
         {
@@ -25,7 +27,8 @@ namespace Music_Player
 
             songHistory = new LinkedList<Song>();
 
-            manualSongStop = false;
+            manualStop = false;
+            previous = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -98,7 +101,7 @@ namespace Music_Player
             }
             else
             {
-                waveOutEvent.Pause();
+                waveOutEvent?.Pause();
                 UpdateTimerState();
                 UpdatePlayPauseBtn();
             }
@@ -112,22 +115,30 @@ namespace Music_Player
 
         private void btnNextSong_Click(object sender, EventArgs e)
         {
-            manualSongStop = false;
+            manualStop = true;
             waveOutEvent?.Stop();
+
+            if (nextSong != null)
+            {
+                PlaySong(nextSong);
+            }
         }
 
         private void btnPreviousSong_Click(object sender, EventArgs e)
         {
-            if (audioFileReader != null && audioFileReader.CurrentTime.TotalSeconds > 5)
+            if (audioFileReader.CurrentTime.TotalSeconds <= 5 && songHistory.Count > 0)
+            {
+                previous = true;
+                manualStop = true;
+                StopCurrentSong();
+                PlaySong(songHistory.Last.Value);
+                songHistory.RemoveLast();
+            }
+            else
             {
                 audioFileReader.Position = 0;
                 lblTimer.Text = "0:00";
                 UpdateTimerState();
-            }
-            else
-            {
-                // TODO: GO TO PREVIOUS SONG (DOUBLE ENDED QUEUE?)
-                songHistory.RemoveLast();
             }
         }
 
@@ -177,6 +188,7 @@ namespace Music_Player
             {
                 if (listViewSongs.SelectedItems[0].Tag is Song song)
                 {
+                    manualStop = true;
                     StopCurrentSong();
                     PlaySong(song);
                 }
@@ -193,6 +205,8 @@ namespace Music_Player
 
         private void PlaySong(Song song)
         {
+            AddSongToHistory();
+
             if (audioFileReader != null)
             {
                 audioFileReader.Dispose();
@@ -221,7 +235,9 @@ namespace Music_Player
                 nextSong = songList[index + 1];
             }
 
-            manualSongStop = false;
+            manualStop = false;
+            currentSong = song;
+            previous = false;
         }
 
         private int FindItemByTag(object tagValue)
@@ -310,8 +326,27 @@ namespace Music_Player
         private void OnPlayBackStopped(object sender, StoppedEventArgs e)
         {
             StopCurrentSong();
-            if(manualSongStop == false)
+            currentSong = null;
+            if(!manualStop && nextSong != null)
                 PlaySong(nextSong);
+        }
+
+        private void AddSongToHistory()
+        {
+            if (previous) return;
+            if (currentSong == null) return;
+
+            if (songHistory.Count >= 5)
+            {
+                songHistory.RemoveFirst();
+                songHistory.AddLast(currentSong);
+            }
+            else
+            {
+                songHistory.AddLast(currentSong);
+            }
+
+            Console.WriteLine(songHistory.Last?.Value + "\n" + songHistory.First?.Value);
         }
     }
 
@@ -353,6 +388,5 @@ namespace Music_Player
             Title = meta.Length > 1 ? meta[1].Trim() : meta[0].Trim();
             Artist = meta.Length > 1 ? meta[0].Trim() : "Unknown Author";
         }
-
     }
 }

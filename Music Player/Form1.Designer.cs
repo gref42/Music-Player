@@ -58,20 +58,18 @@
             volumeSlider.BackColor = SystemColors.ActiveCaption;
             volumeSlider.BackgroundImageLayout = ImageLayout.None;
             volumeSlider.BorderStyle = BorderStyle.FixedSingle;
-            volumeSlider.Location = new Point(559, 499);
-            volumeSlider.Margin = new Padding(3, 4, 3, 4);
+            volumeSlider.Location = new Point(489, 374);
             volumeSlider.Name = "volumeSlider";
-            volumeSlider.Size = new Size(109, 21);
+            volumeSlider.Size = new Size(96, 16);
             volumeSlider.TabIndex = 0;
             volumeSlider.Volume = 0.1F;
             volumeSlider.VolumeChanged += volumeSlider_ValueChanged;
             // 
             // btnAddSong
             // 
-            btnAddSong.Location = new Point(467, 55);
-            btnAddSong.Margin = new Padding(3, 4, 3, 4);
+            btnAddSong.Location = new Point(409, 41);
             btnAddSong.Name = "btnAddSong";
-            btnAddSong.Size = new Size(86, 31);
+            btnAddSong.Size = new Size(75, 23);
             btnAddSong.TabIndex = 1;
             btnAddSong.Text = "Add Song";
             btnAddSong.UseVisualStyleBackColor = true;
@@ -79,10 +77,9 @@
             // 
             // btnPlayPause
             // 
-            btnPlayPause.Location = new Point(445, 315);
-            btnPlayPause.Margin = new Padding(3, 4, 3, 4);
+            btnPlayPause.Location = new Point(389, 236);
             btnPlayPause.Name = "btnPlayPause";
-            btnPlayPause.Size = new Size(86, 31);
+            btnPlayPause.Size = new Size(75, 23);
             btnPlayPause.TabIndex = 2;
             btnPlayPause.Text = "Play";
             btnPlayPause.UseVisualStyleBackColor = true;
@@ -91,10 +88,11 @@
             // listViewSongs
             // 
             listViewSongs.Columns.AddRange(new ColumnHeader[] { Title, Author, Duration });
-            listViewSongs.Location = new Point(0, 3);
+            listViewSongs.Location = new Point(0, 2);
+            listViewSongs.Margin = new Padding(3, 2, 3, 2);
             listViewSongs.Name = "listViewSongs";
             listViewSongs.ShowItemToolTips = true;
-            listViewSongs.Size = new Size(305, 357);
+            listViewSongs.Size = new Size(267, 269);
             listViewSongs.TabIndex = 3;
             listViewSongs.UseCompatibleStateImageBehavior = false;
             listViewSongs.View = View.Details;
@@ -119,46 +117,44 @@
             pnlCurrentSongDetails.Controls.Add(lblCurrentAuthor);
             pnlCurrentSongDetails.Controls.Add(lblCurrentSong);
             pnlCurrentSongDetails.Controls.Add(lblNowPlaying);
-            pnlCurrentSongDetails.Location = new Point(344, 116);
-            pnlCurrentSongDetails.Margin = new Padding(3, 4, 3, 4);
+            pnlCurrentSongDetails.Location = new Point(301, 87);
             pnlCurrentSongDetails.Name = "pnlCurrentSongDetails";
-            pnlCurrentSongDetails.Size = new Size(229, 133);
+            pnlCurrentSongDetails.Size = new Size(200, 100);
             pnlCurrentSongDetails.TabIndex = 4;
             pnlCurrentSongDetails.Visible = false;
             // 
             // lblCurrentAuthor
             // 
             lblCurrentAuthor.AutoSize = true;
-            lblCurrentAuthor.Location = new Point(3, 55);
+            lblCurrentAuthor.Location = new Point(3, 41);
             lblCurrentAuthor.Name = "lblCurrentAuthor";
-            lblCurrentAuthor.Size = new Size(54, 20);
+            lblCurrentAuthor.Size = new Size(44, 15);
             lblCurrentAuthor.TabIndex = 2;
             lblCurrentAuthor.Text = "Author";
             // 
             // lblCurrentSong
             // 
             lblCurrentSong.AutoSize = true;
-            lblCurrentSong.Location = new Point(3, 35);
+            lblCurrentSong.Location = new Point(3, 26);
             lblCurrentSong.Name = "lblCurrentSong";
-            lblCurrentSong.Size = new Size(43, 20);
+            lblCurrentSong.Size = new Size(34, 15);
             lblCurrentSong.TabIndex = 1;
             lblCurrentSong.Text = "Song";
             // 
             // lblNowPlaying
             // 
             lblNowPlaying.AutoSize = true;
-            lblNowPlaying.Location = new Point(3, 15);
+            lblNowPlaying.Location = new Point(3, 11);
             lblNowPlaying.Name = "lblNowPlaying";
-            lblNowPlaying.Size = new Size(95, 20);
+            lblNowPlaying.Size = new Size(77, 15);
             lblNowPlaying.TabIndex = 0;
             lblNowPlaying.Text = "Now Playing:";
             // 
             // btnPreviousSong
             // 
-            btnPreviousSong.Location = new Point(353, 315);
-            btnPreviousSong.Margin = new Padding(3, 4, 3, 4);
+            btnPreviousSong.Location = new Point(309, 236);
             btnPreviousSong.Name = "btnPreviousSong";
-            btnPreviousSong.Size = new Size(86, 31);
+            btnPreviousSong.Size = new Size(75, 23);
             btnPreviousSong.TabIndex = 5;
             btnPreviousSong.Text = "Previous";
             btnPreviousSong.UseVisualStyleBackColor = true;
@@ -166,10 +162,9 @@
             // 
             // btnNextSong
             // 
-            btnNextSong.Location = new Point(537, 315);
-            btnNextSong.Margin = new Padding(3, 4, 3, 4);
+            btnNextSong.Location = new Point(470, 236);
             btnNextSong.Name = "btnNextSong";
-            btnNextSong.Size = new Size(86, 31);
+            btnNextSong.Size = new Size(75, 23);
             btnNextSong.TabIndex = 6;
             btnNextSong.Text = "Next";
             btnNextSong.UseVisualStyleBackColor = true;
@@ -177,10 +172,9 @@
             // 
             // btnAddFolder
             // 
-            btnAddFolder.Location = new Point(337, 55);
-            btnAddFolder.Margin = new Padding(3, 4, 3, 4);
+            btnAddFolder.Location = new Point(295, 41);
             btnAddFolder.Name = "btnAddFolder";
-            btnAddFolder.Size = new Size(108, 31);
+            btnAddFolder.Size = new Size(94, 23);
             btnAddFolder.TabIndex = 7;
             btnAddFolder.Text = "Add Folder";
             btnAddFolder.UseVisualStyleBackColor = true;
@@ -189,11 +183,10 @@
             // seekBar
             // 
             seekBar.LargeChange = 10;
-            seekBar.Location = new Point(41, 17);
-            seekBar.Margin = new Padding(3, 4, 3, 4);
+            seekBar.Location = new Point(36, 13);
             seekBar.Maximum = 100;
             seekBar.Name = "seekBar";
-            seekBar.Size = new Size(346, 56);
+            seekBar.Size = new Size(303, 45);
             seekBar.TabIndex = 8;
             seekBar.TickStyle = TickStyle.Both;
             seekBar.Scroll += seekBar_Scroll;
@@ -204,27 +197,26 @@
             panel1.Controls.Add(lblTotalTime);
             panel1.Controls.Add(lblTimer);
             panel1.Controls.Add(seekBar);
-            panel1.Location = new Point(48, 427);
-            panel1.Margin = new Padding(3, 4, 3, 4);
+            panel1.Location = new Point(42, 320);
             panel1.Name = "panel1";
-            panel1.Size = new Size(439, 93);
+            panel1.Size = new Size(384, 70);
             panel1.TabIndex = 9;
             // 
             // lblTotalTime
             // 
             lblTotalTime.AutoSize = true;
-            lblTotalTime.Location = new Point(394, 35);
+            lblTotalTime.Location = new Point(345, 26);
             lblTotalTime.Name = "lblTotalTime";
-            lblTotalTime.Size = new Size(36, 20);
+            lblTotalTime.Size = new Size(28, 15);
             lblTotalTime.TabIndex = 10;
             lblTotalTime.Text = "0:00";
             // 
             // lblTimer
             // 
             lblTimer.AutoSize = true;
-            lblTimer.Location = new Point(3, 35);
+            lblTimer.Location = new Point(3, 26);
             lblTimer.Name = "lblTimer";
-            lblTimer.Size = new Size(36, 20);
+            lblTimer.Size = new Size(28, 15);
             lblTimer.TabIndex = 9;
             lblTimer.Text = "0:00";
             // 
@@ -235,10 +227,10 @@
             // 
             // MusicPlayer
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.GradientActiveCaption;
-            ClientSize = new Size(682, 553);
+            BackColor = SystemColors.InactiveCaption;
+            ClientSize = new Size(597, 415);
             Controls.Add(panel1);
             Controls.Add(btnAddFolder);
             Controls.Add(btnNextSong);
@@ -248,8 +240,7 @@
             Controls.Add(btnPlayPause);
             Controls.Add(btnAddSong);
             Controls.Add(volumeSlider);
-            Margin = new Padding(3, 4, 3, 4);
-            MinimumSize = new Size(500, 398);
+            MinimumSize = new Size(440, 308);
             Name = "MusicPlayer";
             Text = "Music Player";
             Load += Form1_Load;
