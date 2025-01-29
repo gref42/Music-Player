@@ -11,14 +11,21 @@ namespace Music_Player
         private AudioFileReader? audioFileReader;
 
 
-        private LinkedList<string> songHistory;
+        private LinkedList<Song> songHistory;
+        private Song nextSong;
+
+        private bool manualSongStop;
 
         public MusicPlayer()
         {
             InitializeComponent();
             songList = new List<Song>();
             waveOutEvent = new WaveOutEvent();
-            songHistory = new LinkedList<string>();
+            waveOutEvent.PlaybackStopped += OnPlayBackStopped;
+
+            songHistory = new LinkedList<Song>();
+
+            manualSongStop = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -105,7 +112,8 @@ namespace Music_Player
 
         private void btnNextSong_Click(object sender, EventArgs e)
         {
-
+            manualSongStop = false;
+            waveOutEvent?.Stop();
         }
 
         private void btnPreviousSong_Click(object sender, EventArgs e)
@@ -185,6 +193,12 @@ namespace Music_Player
 
         private void PlaySong(Song song)
         {
+            if (audioFileReader != null)
+            {
+                audioFileReader.Dispose();
+                audioFileReader = null;
+            }
+
             audioFileReader = new AudioFileReader(song.FilePath);
             waveOutEvent = new WaveOutEvent();
 
@@ -199,23 +213,37 @@ namespace Music_Player
 
             UpdateTimerState();
             UpdatePlayPauseBtn();
+
+            int index = FindItemByTag(song);
+
+            if (index != -1)
+            {
+                nextSong = songList[index + 1];
+            }
+
+            manualSongStop = false;
         }
 
-        private void PlaySong(string path)
+        private int FindItemByTag(object tagValue)
         {
-            audioFileReader = new AudioFileReader(path);
-            waveOutEvent = new WaveOutEvent();
-
-            seekBar.Maximum = (int)audioFileReader.TotalTime.TotalSeconds;
-            lblTotalTime.Text = audioFileReader.TotalTime.ToString(@"m\:ss");
-
-            waveOutEvent.Init(audioFileReader);
-            waveOutEvent.Play();
-
-            lblTimer.Text = "0:00";
-            seekBar.Value = 0;
-
-            UpdateTimerState();
+            try
+            {
+                foreach (ListViewItem item in listViewSongs.Items)
+                {
+                    if (item.Tag != null && item.Tag.Equals(tagValue))
+                    {
+                        return item.Index;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (listViewSongs.Items.Count == 0)
+                    return -1;
+                return 0;
+            }
+            
+            return -1;
         }
 
         private void seekBar_Scroll(object sender, EventArgs e)
@@ -277,6 +305,13 @@ namespace Music_Player
                 btnPlayPause.Text = "Pause";
             }
             
+        }
+
+        private void OnPlayBackStopped(object sender, StoppedEventArgs e)
+        {
+            StopCurrentSong();
+            if(manualSongStop == false)
+                PlaySong(nextSong);
         }
     }
 
