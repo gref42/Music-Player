@@ -48,6 +48,11 @@
             lblTotalTime = new Label();
             lblTimer = new Label();
             songTimer = new System.Windows.Forms.Timer(components);
+            btnRemove = new Button();
+            btnSaveSession = new Button();
+            btnLoadSession = new Button();
+            txtboxSessionInput = new TextBox();
+            chkboxShuffle = new CheckBox();
             pnlCurrentSongDetails.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)seekBar).BeginInit();
             panel1.SuspendLayout();
@@ -58,16 +63,16 @@
             volumeSlider.BackColor = SystemColors.ActiveCaption;
             volumeSlider.BackgroundImageLayout = ImageLayout.None;
             volumeSlider.BorderStyle = BorderStyle.FixedSingle;
-            volumeSlider.Location = new Point(489, 374);
+            volumeSlider.Location = new Point(415, 497);
             volumeSlider.Name = "volumeSlider";
-            volumeSlider.Size = new Size(96, 16);
+            volumeSlider.Size = new Size(123, 16);
             volumeSlider.TabIndex = 0;
             volumeSlider.Volume = 0.1F;
             volumeSlider.VolumeChanged += volumeSlider_ValueChanged;
             // 
             // btnAddSong
             // 
-            btnAddSong.Location = new Point(409, 41);
+            btnAddSong.Location = new Point(112, 337);
             btnAddSong.Name = "btnAddSong";
             btnAddSong.Size = new Size(75, 23);
             btnAddSong.TabIndex = 1;
@@ -77,9 +82,9 @@
             // 
             // btnPlayPause
             // 
-            btnPlayPause.Location = new Point(389, 236);
+            btnPlayPause.Location = new Point(165, 386);
             btnPlayPause.Name = "btnPlayPause";
-            btnPlayPause.Size = new Size(75, 23);
+            btnPlayPause.Size = new Size(75, 51);
             btnPlayPause.TabIndex = 2;
             btnPlayPause.Text = "Play";
             btnPlayPause.UseVisualStyleBackColor = true;
@@ -92,7 +97,7 @@
             listViewSongs.Margin = new Padding(3, 2, 3, 2);
             listViewSongs.Name = "listViewSongs";
             listViewSongs.ShowItemToolTips = true;
-            listViewSongs.Size = new Size(267, 269);
+            listViewSongs.Size = new Size(328, 330);
             listViewSongs.TabIndex = 3;
             listViewSongs.UseCompatibleStateImageBehavior = false;
             listViewSongs.View = View.Details;
@@ -117,9 +122,9 @@
             pnlCurrentSongDetails.Controls.Add(lblCurrentAuthor);
             pnlCurrentSongDetails.Controls.Add(lblCurrentSong);
             pnlCurrentSongDetails.Controls.Add(lblNowPlaying);
-            pnlCurrentSongDetails.Location = new Point(301, 87);
+            pnlCurrentSongDetails.Location = new Point(334, 262);
             pnlCurrentSongDetails.Name = "pnlCurrentSongDetails";
-            pnlCurrentSongDetails.Size = new Size(200, 100);
+            pnlCurrentSongDetails.Size = new Size(167, 70);
             pnlCurrentSongDetails.TabIndex = 4;
             pnlCurrentSongDetails.Visible = false;
             // 
@@ -152,9 +157,9 @@
             // 
             // btnPreviousSong
             // 
-            btnPreviousSong.Location = new Point(309, 236);
+            btnPreviousSong.Location = new Point(84, 386);
             btnPreviousSong.Name = "btnPreviousSong";
-            btnPreviousSong.Size = new Size(75, 23);
+            btnPreviousSong.Size = new Size(75, 51);
             btnPreviousSong.TabIndex = 5;
             btnPreviousSong.Text = "Previous";
             btnPreviousSong.UseVisualStyleBackColor = true;
@@ -162,9 +167,9 @@
             // 
             // btnNextSong
             // 
-            btnNextSong.Location = new Point(470, 236);
+            btnNextSong.Location = new Point(253, 386);
             btnNextSong.Name = "btnNextSong";
-            btnNextSong.Size = new Size(75, 23);
+            btnNextSong.Size = new Size(75, 51);
             btnNextSong.TabIndex = 6;
             btnNextSong.Text = "Next";
             btnNextSong.UseVisualStyleBackColor = true;
@@ -172,7 +177,7 @@
             // 
             // btnAddFolder
             // 
-            btnAddFolder.Location = new Point(295, 41);
+            btnAddFolder.Location = new Point(12, 338);
             btnAddFolder.Name = "btnAddFolder";
             btnAddFolder.Size = new Size(94, 23);
             btnAddFolder.TabIndex = 7;
@@ -197,7 +202,7 @@
             panel1.Controls.Add(lblTotalTime);
             panel1.Controls.Add(lblTimer);
             panel1.Controls.Add(seekBar);
-            panel1.Location = new Point(42, 320);
+            panel1.Location = new Point(12, 443);
             panel1.Name = "panel1";
             panel1.Size = new Size(384, 70);
             panel1.TabIndex = 9;
@@ -225,12 +230,68 @@
             songTimer.Interval = 1000;
             songTimer.Tick += songTimer_Tick;
             // 
+            // btnRemove
+            // 
+            btnRemove.Location = new Point(193, 337);
+            btnRemove.Name = "btnRemove";
+            btnRemove.Size = new Size(75, 23);
+            btnRemove.TabIndex = 10;
+            btnRemove.Text = "Remove";
+            btnRemove.UseVisualStyleBackColor = true;
+            btnRemove.Click += btnRemove_Click;
+            // 
+            // btnSaveSession
+            // 
+            btnSaveSession.Location = new Point(334, 12);
+            btnSaveSession.Name = "btnSaveSession";
+            btnSaveSession.Size = new Size(96, 23);
+            btnSaveSession.TabIndex = 11;
+            btnSaveSession.Text = "Save Session";
+            btnSaveSession.UseVisualStyleBackColor = true;
+            btnSaveSession.Click += btnSaveSession_Click;
+            // 
+            // btnLoadSession
+            // 
+            btnLoadSession.Location = new Point(436, 12);
+            btnLoadSession.Name = "btnLoadSession";
+            btnLoadSession.Size = new Size(96, 23);
+            btnLoadSession.TabIndex = 12;
+            btnLoadSession.Text = "Load Session";
+            btnLoadSession.UseVisualStyleBackColor = true;
+            btnLoadSession.Click += btnLoadSession_Click;
+            // 
+            // txtboxSessionInput
+            // 
+            txtboxSessionInput.Location = new Point(334, 41);
+            txtboxSessionInput.Name = "txtboxSessionInput";
+            txtboxSessionInput.Size = new Size(96, 23);
+            txtboxSessionInput.TabIndex = 13;
+            txtboxSessionInput.Text = "Session Name";
+            txtboxSessionInput.TextChanged += txtboxSessionInput_TextChanged;
+            txtboxSessionInput.Enter += txtboxSessionInput_Enter;
+            txtboxSessionInput.Leave += txtboxSessionInput_Leave;
+            // 
+            // chkboxShuffle
+            // 
+            chkboxShuffle.AutoSize = true;
+            chkboxShuffle.Location = new Point(15, 418);
+            chkboxShuffle.Name = "chkboxShuffle";
+            chkboxShuffle.Size = new Size(63, 19);
+            chkboxShuffle.TabIndex = 14;
+            chkboxShuffle.Text = "Shuffle";
+            chkboxShuffle.UseVisualStyleBackColor = true;
+            // 
             // MusicPlayer
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.InactiveCaption;
-            ClientSize = new Size(597, 415);
+            ClientSize = new Size(592, 525);
+            Controls.Add(chkboxShuffle);
+            Controls.Add(txtboxSessionInput);
+            Controls.Add(btnLoadSession);
+            Controls.Add(btnSaveSession);
+            Controls.Add(btnRemove);
             Controls.Add(panel1);
             Controls.Add(btnAddFolder);
             Controls.Add(btnNextSong);
@@ -243,13 +304,15 @@
             MinimumSize = new Size(440, 308);
             Name = "MusicPlayer";
             Text = "Music Player";
-            Load += Form1_Load;
+            FormClosing += MusicPlayer_FormClosing;
+            Load += MusicPlayer_Load;
             pnlCurrentSongDetails.ResumeLayout(false);
             pnlCurrentSongDetails.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)seekBar).EndInit();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -273,5 +336,10 @@
         private Label lblTimer;
         private Label lblTotalTime;
         private System.Windows.Forms.Timer songTimer;
+        private Button btnRemove;
+        private Button btnSaveSession;
+        private Button btnLoadSession;
+        private TextBox txtboxSessionInput;
+        private CheckBox chkboxShuffle;
     }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using NAudio.Wave;
 
 namespace Music_Player
@@ -29,11 +30,17 @@ namespace Music_Player
 
             manualStop = false;
             previous = false;
+
+            txtboxSessionInput.ForeColor = Color.Gray;
+            txtboxSessionInput.Tag = false;
+            var toolTip = new ToolTip();
+            toolTip.SetToolTip(txtboxSessionInput,
+                "Enter a session name here. It will be saved when you press 'Save Session'.");
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void MusicPlayer_Load(object sender, EventArgs e)
         {
-
+            LoadSession("lastsession.session.json");
         }
 
         private void btnAddSong_Click(object sender, EventArgs e)
@@ -77,7 +84,7 @@ namespace Music_Player
         {
             if (btnPlayPause.Text == "Play")
             {
-                if(waveOutEvent.PlaybackState == PlaybackState.Paused)
+                if (waveOutEvent.PlaybackState == PlaybackState.Paused || waveOutEvent.PlaybackState == PlaybackState.Stopped)
                 {
                     waveOutEvent.Play();
 
@@ -205,7 +212,10 @@ namespace Music_Player
 
         private void PlaySong(Song song)
         {
+            if (RemoveMissingSongs(song)) return;
+
             AddSongToHistory();
+            currentSong = song;
 
             if (audioFileReader != null)
             {
@@ -213,30 +223,29 @@ namespace Music_Player
                 audioFileReader = null;
             }
 
-            audioFileReader = new AudioFileReader(song.FilePath);
+            audioFileReader = new AudioFileReader(currentSong.FilePath);
             waveOutEvent = new WaveOutEvent();
 
             seekBar.Maximum = (int)audioFileReader.TotalTime.TotalSeconds;
             lblTotalTime.Text = audioFileReader.TotalTime.ToString(@"m\:ss");
 
             waveOutEvent.Init(audioFileReader);
+            waveOutEvent.Volume = volumeSlider.Volume;
             waveOutEvent.Play();
 
             lblTimer.Text = "0:00";
             seekBar.Value = 0;
 
+            lblCurrentAuthor.Text = currentSong.Artist;
+            lblCurrentSong.Text = currentSong.Title;
+            pnlCurrentSongDetails.Visible = true;
+
+            PickNextSong(currentSong);
+
             UpdateTimerState();
             UpdatePlayPauseBtn();
 
-            int index = FindItemByTag(song);
-
-            if (index != -1)
-            {
-                nextSong = songList[index + 1];
-            }
-
             manualStop = false;
-            currentSong = song;
             previous = false;
         }
 
@@ -258,7 +267,7 @@ namespace Music_Player
                     return -1;
                 return 0;
             }
-            
+
             return -1;
         }
 
@@ -320,14 +329,14 @@ namespace Music_Player
             {
                 btnPlayPause.Text = "Pause";
             }
-            
+
         }
 
         private void OnPlayBackStopped(object sender, StoppedEventArgs e)
         {
             StopCurrentSong();
             currentSong = null;
-            if(!manualStop && nextSong != null)
+            if (!manualStop && nextSong != null)
                 PlaySong(nextSong);
         }
 
@@ -348,15 +357,210 @@ namespace Music_Player
 
             Console.WriteLine(songHistory.Last?.Value + "\n" + songHistory.First?.Value);
         }
+
+        private void btnRemove_Click(object sender, EventArgs e)
+        {
+            if (listViewSongs.SelectedItems.Count > 0)
+            {
+                for (int i = listViewSongs.SelectedItems.Count - 1; i >= 0; i--)
+                {
+                    int index = listViewSongs.SelectedItems[i].Index;
+
+                    listViewSongs.Items.RemoveAt(index);
+                    songList.RemoveAt(index);
+                }
+            }
+        }
+
+        private void SaveSession(string filename)
+        {
+            var sessionData = new SessionData()
+            {
+                CurrentSong = currentSong,
+                Position = audioFileReader?.CurrentTime ?? TimeSpan.Zero,
+                Songs = songList,
+                SongHistory = songHistory,
+                Volume = waveOutEvent?.Volume ?? 0.1f,
+                Shuffle = chkboxShuffle.Checked
+            };
+
+            string json = JsonSerializer.Serialize(sessionData, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(filename, json);
+        }
+
+
+        private void LoadSession(string filename)
+        {
+            try
+            {
+                if (File.Exists(filename))
+                {
+                    string json = File.ReadAllText(filename);
+                    var sessionData = JsonSerializer.Deserialize<SessionData>(json);
+
+                    if (sessionData != null)
+                    {
+                        currentSong = sessionData.CurrentSong;
+                        songList = sessionData.Songs ?? new List<Song>();
+                        songHistory = sessionData.SongHistory ?? new LinkedList<Song>();
+                        volumeSlider.Volume = sessionData.Volume;
+                        chkboxShuffle.Checked = sessionData.Shuffle;
+
+                        listViewSongs.Items.Clear();
+                        foreach (var song in songList)
+                        {
+                            var item = new ListViewItem(new[] { song.Title, song.Artist, song.Length.ToString(@"mm\:ss") })
+                            {
+                                Tag = song
+                            };
+                            listViewSongs.Items.Add(item);
+                        }
+
+                        if (currentSong != null && !string.IsNullOrEmpty(currentSong.FilePath) && File.Exists(currentSong.FilePath))
+                        {
+                            audioFileReader = new AudioFileReader(currentSong.FilePath);
+                            audioFileReader.CurrentTime = sessionData.Position ?? TimeSpan.Zero;
+                            waveOutEvent.Init(audioFileReader);
+                            waveOutEvent.Volume = volumeSlider.Volume;
+
+                            lblTotalTime.Text = audioFileReader.TotalTime.ToString(@"m\:ss");
+                            lblTimer.Text = audioFileReader.CurrentTime.ToString(@"m\:ss");
+                            seekBar.Maximum = (int)audioFileReader.TotalTime.TotalSeconds;
+                            seekBar.Value = (int)audioFileReader.CurrentTime.TotalSeconds;
+
+                            btnPlayPause.Text = "Play";
+
+                            lblCurrentAuthor.Text = currentSong.Artist;
+                            lblCurrentSong.Text = currentSong.Title;
+                            pnlCurrentSongDetails.Visible = true;
+
+                            PickNextSong(currentSong);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to load session: {e.Message}");
+            }
+        }
+
+        private void MusicPlayer_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveSession("lastsession.session.json");
+        }
+
+        private void btnSaveSession_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtboxSessionInput.Text) || txtboxSessionInput.Text == "Session Name")
+            {
+                MessageBox.Show("Name can't be empty");
+                return;
+            }
+
+            string filename = txtboxSessionInput.Text +
+                              ".session.json";
+
+            SaveSession(filename);
+        }
+
+        private void btnLoadSession_Click(object sender, EventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog()
+            {
+                Filter = "Session files (*.session.json)|*.session.json",
+                InitialDirectory = Application.StartupPath,
+                Multiselect = false
+            };
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                LoadSession(openFileDialog.FileName);
+            }
+        }
+
+        private void txtboxSessionInput_Enter(object sender, EventArgs e)
+        {
+            if (txtboxSessionInput.Text == "Session Name")
+            {
+                txtboxSessionInput.Text = string.Empty;
+                txtboxSessionInput.ForeColor = Color.Black;
+            }
+        }
+
+        private void txtboxSessionInput_Leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtboxSessionInput.Text))
+            {
+                txtboxSessionInput.Text = "Session Name";
+                txtboxSessionInput.ForeColor = Color.Gray;
+            }
+        }
+
+        private void txtboxSessionInput_TextChanged(object sender, EventArgs e)
+        {
+        }
+
+        private bool RemoveMissingSongs(Song song)
+        {
+            if (!File.Exists(song.FilePath))
+            {
+                MessageBox.Show("Music file has been moved or deleted.");
+
+                songList.RemoveAll(s => s.Equals(song));
+
+                foreach (ListViewItem item in listViewSongs.Items)
+                {
+                    if (item.Tag is Song tagSong && tagSong.Equals(song)) 
+                    {
+                        listViewSongs.Items.Remove(item);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private void PickNextSong(Song song)
+        {
+            if (chkboxShuffle.Checked)
+            {
+                var rand = new Random();
+                int index;
+
+                do
+                {
+                    index = rand.Next(songList.Count);
+                } while (songList[index].Equals(song));
+
+                nextSong = songList[index];
+            }
+            else
+            {
+                int index = FindItemByTag(song);
+
+                if (index != -1)
+                {
+                    if (songList.Count <= index + 1)
+                        nextSong = songList[0];
+                    else
+                        nextSong = songList[index + 1];
+                }
+            }
+        }
+
     }
 
+    [Serializable]
     public class Song
     {
-        public string Title { get; }
-        public string Artist { get; }
-        public TimeSpan Length { get; }
-        public string FilePath { get; }
-        public bool IsValid { get; }
+        public string Title { get; set; }
+        public string Artist { get; set; }
+        public TimeSpan Length { get; set; }
+        public string FilePath { get; set; }
+        public bool IsValid { get; set; }
 
         public Song(string filePath)
         {
@@ -388,5 +592,16 @@ namespace Music_Player
             Title = meta.Length > 1 ? meta[1].Trim() : meta[0].Trim();
             Artist = meta.Length > 1 ? meta[0].Trim() : "Unknown Author";
         }
+    }
+
+    [Serializable]
+    public class SessionData
+    {
+        public Song? CurrentSong { get; set; }
+        public TimeSpan? Position { get; set; }
+        public List<Song> Songs { get; set; }
+        public LinkedList<Song>? SongHistory { get; set; }
+        public float Volume { get; set; }
+        public bool Shuffle { get; set; }
     }
 }
