@@ -82,6 +82,20 @@ namespace Music_Player
 
         private void btnPlayPause_Click(object sender, EventArgs e)
         {
+            if (currentSong == null)
+            {
+                if (listViewSongs.SelectedItems.Count > 0)
+                {
+                    PlaySong(listViewSongs.SelectedItems[0].Tag as Song);
+                    return;
+                }
+                else
+                {
+                    MessageBox.Show("Select a song to play");
+                    return;
+                }
+            }
+
             if (btnPlayPause.Text == "Play")
             {
                 if (waveOutEvent.PlaybackState == PlaybackState.Paused || waveOutEvent.PlaybackState == PlaybackState.Stopped)
