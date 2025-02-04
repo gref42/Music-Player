@@ -305,7 +305,8 @@ namespace Music_Player
             audioFileReader.CurrentTime = TimeSpan.FromSeconds(pos);
 
             UpdateTimerState();
-            waveOutEvent.Play();
+            if (btnPlayPause.Text == "Pause")
+                waveOutEvent?.Play();
         }
 
         private void songTimer_Tick(object sender, EventArgs e)
